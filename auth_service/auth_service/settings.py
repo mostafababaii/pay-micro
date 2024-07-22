@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -44,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'user',
 ]
 
 MIDDLEWARE = [
@@ -110,15 +113,33 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ACCESS_TOKEN_LIFETIME_IN_MINUTE = env(
+    'ACCESS_TOKEN_LIFETIME', cast=int, default=60,
+)
+REFRESH_TOKEN_LIFETIME_IN_DAY = env(
+    'REFRESH_TOKEN_LIFETIME', cast=int, default=7,
+)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'JWT_AUTH': {
+        'JWT_SECRET_KEY': SECRET_KEY,
+    },
 }
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=ACCESS_TOKEN_LIFETIME_IN_MINUTE),  # noqa
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=REFRESH_TOKEN_LIFETIME_IN_DAY),
+    'SIGNING_KEY': SECRET_KEY,
+    'ALGORITHM': 'HS256',
+    'USER_ID_FIELD': 'username',
+    'USER_ID_CLAIM': 'user_id',
 }
+
+AUTH_USER_MODEL = 'user.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -141,3 +162,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+RABBITMQ_HOST = env('RABBITMQ_HOST')
+RABBITMQ_PORT = env('RABBITMQ_PORT')
+RABBITMQ_USERNAME = env('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD = env('RABBITMQ_PASSWORD')
+RABBITMQ_VHOST = env('RABBITMQ_VHOST')
