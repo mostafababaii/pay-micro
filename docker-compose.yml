@@ -45,9 +45,21 @@ services:
       context: ./notification_service
     command: sh -c 'python manage.py user_consumer'
     depends_on:
-      - notificationdb
-      - redis
-      - rabbitmq
+      - notification
+    volumes:
+      - ./notification_service:/app
+    networks:
+      - pay-micro
+
+  otp-worker:
+    restart: unless-stopped
+    container_name: otp-worker
+    image: notification:latest
+    build:
+      context: ./notification_service
+    command: sh -c 'celery -A notification_service worker --pool=gevent -l info -Q otp -n worker@otp'
+    depends_on:
+      - notification
     volumes:
       - ./notification_service:/app
     networks:
