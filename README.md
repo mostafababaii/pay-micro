@@ -66,17 +66,21 @@ cd pay-micro
 
 Build and start the services:
 
-Docker commands:
+Manual commands:
 
 docker compose up -d
 docker compose exec -it auth python manage.py migrate
 docker compose exec -it notification python manage.py migrate
+cp auth_service/.env.example auth_service/.env
+cp notification_service/.env.example notification_service/.env
 
 You can also use Makefile commands:
 
 make run
 make migrate-auth
 make migrate-notification
+make auth-env
+make notification-env
 
 
 Usage Services:
