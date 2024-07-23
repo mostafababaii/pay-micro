@@ -1,7 +1,10 @@
-.PHONY: build migrate-auth migrate-notification
+.PHONY: run shutdown migrate-auth migrate-notification
 
 run:
 	docker compose up -d
+
+shutdown:
+	docker compose down
 
 migrate-auth:
 	docker compose exec -it auth python manage.py migrate
