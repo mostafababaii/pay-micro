@@ -1,0 +1,120 @@
+version: "3.8"
+
+services:
+  auth:
+    restart: unless-stopped
+    image: auth:latest
+    container_name: auth-app
+    build:
+      context: ./auth_service
+    depends_on:
+      - authdb
+      - redis
+      - rabbitmq
+    command: sh -c 'python manage.py runserver 0.0.0.0:8000'
+    ports:
+      - 8000:8000
+    volumes:
+      - ./auth_service:/app
+    networks:
+      - pay-micro
+
+  notification:
+    restart: unless-stopped
+    image: notification:latest
+    container_name: notification-app
+    build:
+      context: ./notification_service
+    depends_on:
+      - notificationdb
+      - redis
+      - rabbitmq
+    command: sh -c 'python manage.py runserver 0.0.0.0:8001'
+    ports:
+      - 8001:8001
+    volumes:
+      - ./notification_service:/app
+    networks:
+      - pay-micro
+
+  user-consumer:
+    restart: unless-stopped
+    container_name: user-consumer
+    image: notification:latest
+    build:
+      context: ./notification_service
+    command: sh -c 'python manage.py user_consumer'
+    depends_on:
+      - notificationdb
+      - redis
+      - rabbitmq
+    volumes:
+      - ./notification_service:/app
+    networks:
+      - pay-micro
+
+  authdb:
+    image: postgres:15.4-alpine3.18
+    container_name: auth-pg-db
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - auth-db:/var/lib/postgresql/data
+    networks:
+      - pay-micro
+
+  notificationdb:
+    image: postgres:15.4-alpine3.18
+    container_name: notification-pg-db
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 5433:5432
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - notification-db:/var/lib/postgresql/data
+    networks:
+      - pay-micro
+
+  redis:
+    image: redis:7.2.1-alpine
+    restart: unless-stopped
+    container_name: redis-db
+    ports:
+      - 6379:6379
+    networks:
+      - pay-micro
+
+  rabbitmq:
+    image: rabbitmq:3.12.4-management-alpine
+    restart: unless-stopped
+    container_name: rabbit-mq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    env_file: ./auth_service/.env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - pay-micro
+
+volumes:
+  auth-db:
+    driver: local
+  notification-db:
+    driver: local
+
+networks:
+  pay-micro:
+    driver: bridge
