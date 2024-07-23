@@ -58,6 +58,26 @@ services:
     build:
       context: ./notification_service
     command: sh -c 'celery -A notification_service worker --pool=gevent -l info -Q otp -n worker@otp'
+    environment:
+      C_FORCE_ROOT: true
+    depends_on:
+      - notification
+    volumes:
+      - ./notification_service:/app
+    networks:
+      - pay-micro
+
+  flower:
+    restart: unless-stopped
+    container_name: flower
+    image: notification:latest
+    build:
+      context: ./notification_service
+    command: celery -A notification_service flower --port=5555
+    environment:
+      C_FORCE_ROOT: true
+    ports:
+      - 5555:5555
     depends_on:
       - notification
     volumes:
