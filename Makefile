@@ -1,6 +1,6 @@
 .PHONY: build migrate-auth migrate-notification
 
-build:
+run:
 	docker compose up -d
 
 migrate-auth:

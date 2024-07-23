@@ -74,7 +74,7 @@ docker compose exec -it notification python manage.py migrate
 
 You can also use Makefile commands:
 
-make build
+make run
 make migrate-auth
 make migrate-notification
 
