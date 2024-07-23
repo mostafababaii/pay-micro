@@ -11,3 +11,9 @@ migrate-auth:
 
 migrate-notification:
 	docker compose exec -it notification python manage.py migrate
+
+auth-env:
+	cp auth_service/.env.example auth_service/.env
+
+notification-env:
+	cp notification_service/.env.example notification_service/.env
